@@ -51,7 +51,7 @@ final class Message extends AbstractRestController implements ActionController
      * @param array $data
      * @return mixed|void
      */
-    public function create(array $data)
+    public function create($data)
     {
         $message = StandardMessage::fromArray($data);
 
