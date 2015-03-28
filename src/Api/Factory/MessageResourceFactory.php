@@ -12,6 +12,7 @@
 namespace Prooph\Link\ProcessorProxy\Api\Factory;
 
 use Prooph\Link\ProcessorProxy\Api\Message;
+use Prooph\Processing\Environment\Environment;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -32,7 +33,13 @@ final class MessageResourceFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
-        return new Message($serviceLocator->getServiceLocator()->get('prooph.link.processor_proxy.message_logger'));
+        /** @var $env Environment */
+        $env = $serviceLocator->getServiceLocator()->get('processing_environment');
+
+        return new Message(
+            $env->getWorkflowEngine(),
+            $serviceLocator->getServiceLocator()->get('prooph.link.processor_proxy.message_logger')
+        );
     }
 }
  

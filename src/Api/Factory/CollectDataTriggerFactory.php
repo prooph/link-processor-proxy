@@ -12,6 +12,7 @@
 namespace Prooph\Link\ProcessorProxy\Api\Factory;
 
 use Prooph\Link\ProcessorProxy\Api\CollectDataTrigger;
+use Prooph\Processing\Environment\Environment;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
@@ -23,7 +24,6 @@ use Zend\ServiceManager\ServiceLocatorInterface;
  */
 final class CollectDataTriggerFactory implements FactoryInterface
 {
-
     /**
      * Create service
      *
@@ -32,7 +32,11 @@ final class CollectDataTriggerFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $serviceLocator)
     {
+        /** @var $env Environment */
+        $env = $serviceLocator->getServiceLocator()->get('processing_environment');
+
         return new CollectDataTrigger(
+            $env->getWorkflowEngine(),
             $serviceLocator->getServiceLocator()->get('prooph.link.processor_proxy.message_logger'),
             $serviceLocator->getServiceLocator()->get('prooph.link.system_config')
         );

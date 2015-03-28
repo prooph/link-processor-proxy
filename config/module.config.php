@@ -59,8 +59,6 @@ return [
     ],
     'service_manager' => [
         'factories' => [
-            'prooph.link.processor_proxy.forward_message_extractor_translator'  => 'Prooph\Link\ProcessorProxy\ProophPlugin\Factory\ForwardMessageExtractorTranslatorFactory',
-            'prooph.link.processor_proxy.in_memory_message_forwarder'           => 'Prooph\Link\ProcessorProxy\ProophPlugin\Factory\InMemoryMessageForwarderFactory',
             'prooph.link.processor_proxy.message_logger'                        => 'Prooph\Link\ProcessorProxy\Service\Factory\DbalMessageLoggerFactory',
             'prooph.link.processor_proxy.start_message_process_id_logger'       => 'Prooph\Link\ProcessorProxy\ProcessingPlugin\Factory\StartMessageProcessIdLoggerFactory',
             'prooph.link.processor_proxy.message_flow_logger'                   => 'Prooph\Link\ProcessorProxy\ProcessingPlugin\Factory\MessageFlowLoggerFactory',
@@ -72,22 +70,6 @@ return [
             'Prooph\Link\ProcessorProxy\Api\Message' => 'Prooph\Link\ProcessorProxy\Api\Factory\MessageResourceFactory',
         ]
     ),
-    'prooph.psb' => [
-        'command_router_map' => [
-            //By default a service bus message received by the processor proxy API is wrapped with a ForwardMessage command
-            //and then forwarded to the Prooph\Link\ProcessorProxy\\ProophPlugin\InMemoryMessageForwarder which forwards
-            //the wrapped message to the processing workflow engine.
-            //An add on can override the routing so that the ForwardMessage is send to a message dispatcher which puts
-            //the wrapped service bus message into a worker queue so that the API service can respond fast and
-            //don't have to wait until the message was processed by the workflow processor
-            'Prooph\Link\ProcessorProxy\Command\ForwardHttpMessage' => 'prooph.link.processor_proxy.in_memory_message_forwarder',
-        ],
-        'command_bus' => [
-            //This plugin extracts a service bus message out of a ProcessorProxy\Command\ForwardMessage command
-            //when the command is send to a message dispatcher
-            'prooph.link.processor_proxy.forward_message_extractor_translator',
-        ]
-    ],
     'zf-content-negotiation' => [
         'controllers' => [
             'Prooph\Link\ProcessorProxy\Api\Message'            => 'Json',

@@ -17,18 +17,19 @@ use Assert\Assertion;
 use Prooph\Processing\Message\WorkflowMessage;
 use Prooph\Link\ProcessorProxy\Command\ForwardHttpMessage;
 use Prooph\Link\ProcessorProxy\Model\MessageLogger;
+use Prooph\Processing\Processor\WorkflowEngine;
 use Prooph\ServiceBus\CommandBus;
 use Prooph\Link\Application\Projection\ProcessingConfig;
 use Zend\Http\PhpEnvironment\Response;
 use ZF\ApiProblem\ApiProblem;
 use ZF\ApiProblem\ApiProblemResponse;
 
-final class CollectDataTrigger extends AbstractRestController implements ActionController
+final class CollectDataTrigger extends AbstractRestController
 {
     /**
-     * @var CommandBus
+     * @var WorkflowEngine
      */
-    private $commandBus;
+    private $workflowEngine;
 
     /**
      * @var MessageLogger
@@ -40,8 +41,9 @@ final class CollectDataTrigger extends AbstractRestController implements ActionC
      */
     private $ProcessingConfig;
 
-    public function __construct(MessageLogger $messageLogger, ProcessingConfig $config)
+    public function __construct(WorkflowEngine $workflowEngine, MessageLogger $messageLogger, ProcessingConfig $config)
     {
+        $this->workflowEngine = $workflowEngine;
         $this->messageLogger = $messageLogger;
         $this->ProcessingConfig  = $config;
     }
@@ -72,9 +74,7 @@ final class CollectDataTrigger extends AbstractRestController implements ActionC
 
         $this->messageLogger->logIncomingMessage($wfMessage);
 
-        $sbMessage = $wfMessage->toServiceBusMessage();
-
-        $this->commandBus->dispatch(ForwardHttpMessage::createWith($sbMessage));
+        $this->workflowEngine->dispatch($wfMessage);
 
         /** @var $response Response */
         $response = $this->getResponse();
@@ -82,21 +82,12 @@ final class CollectDataTrigger extends AbstractRestController implements ActionC
         $response->getHeaders()
             ->addHeaderLine(
                 'Location',
-                $this->url()->fromRoute('prooph.link/processor_proxy/api/messages', ['id' => $sbMessage->header()->uuid()->toString()])
+                $this->url()->fromRoute('prooph.link/processor_proxy/api/messages', ['id' => $wfMessage->uuid()->toString()])
             );
 
         $response->setStatusCode(201);
 
         return $response;
-    }
-
-    /**
-     * @param CommandBus $commandBus
-     * @return void
-     */
-    public function setCommandBus(CommandBus $commandBus)
-    {
-        $this->commandBus = $commandBus;
     }
 }
  

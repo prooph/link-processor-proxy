@@ -15,6 +15,7 @@ use Prooph\Link\Application\Service\AbstractRestController;
 use Prooph\Link\Application\Service\ActionController;
 use Prooph\Link\ProcessorProxy\Command\ForwardHttpMessage;
 use Prooph\Link\ProcessorProxy\Model\MessageLogger;
+use Prooph\Processing\Processor\WorkflowEngine;
 use Prooph\ServiceBus\CommandBus;
 use Prooph\ServiceBus\Message\StandardMessage;
 use Rhumsaa\Uuid\Uuid;
@@ -27,12 +28,12 @@ use ZF\ApiProblem\ApiProblemResponse;
  * @package ProcessorProxy\Api
  * @author Alexander Miertsch <kontakt@codeliner.ws>
  */
-final class Message extends AbstractRestController implements ActionController
+final class Message extends AbstractRestController
 {
     /**
-     * @var CommandBus
+     * @var WorkflowEngine
      */
-    private $commandBus;
+    private $workflowEngine;
 
     /**
      * @var MessageLogger
@@ -40,10 +41,12 @@ final class Message extends AbstractRestController implements ActionController
     private $messageLogger;
 
     /**
+     * @param WorkflowEngine $workflowEngine
      * @param MessageLogger $messageLogger
      */
-    public function __construct(MessageLogger $messageLogger)
+    public function __construct(WorkflowEngine $workflowEngine, MessageLogger $messageLogger)
     {
+        $this->workflowEngine = $workflowEngine;
         $this->messageLogger = $messageLogger;
     }
 
@@ -55,7 +58,7 @@ final class Message extends AbstractRestController implements ActionController
     {
         $message = StandardMessage::fromArray($data);
 
-        $this->commandBus->dispatch(ForwardHttpMessage::createWith($message));
+        $this->workflowEngine->dispatch($message);
 
         //@TODO: improve response, provide get service which returns status of the message including related actions
         //@TODO: like started process etc.
@@ -73,15 +76,6 @@ final class Message extends AbstractRestController implements ActionController
         if (is_null($message)) return new ApiProblemResponse(new ApiProblem(404, "Message can not be found"));
 
         return ["message" => $message->toArray()];
-    }
-
-    /**
-     * @param CommandBus $commandBus
-     * @return void
-     */
-    public function setCommandBus(CommandBus $commandBus)
-    {
-        $this->commandBus = $commandBus;
     }
 }
  
