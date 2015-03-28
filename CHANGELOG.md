@@ -21,5 +21,5 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - First development version of the module
 - Runs already in production!
 
-[unreleased]: https://github.com/prooph/link-processor-config/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/prooph/link-processor-config/compare/v0.1.0...v0.1.1
+[unreleased]: https://github.com/prooph/link-processor-proxy/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/prooph/link-processor-proxy/compare/v0.1...v0.1.1
