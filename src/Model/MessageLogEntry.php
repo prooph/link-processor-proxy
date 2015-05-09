@@ -255,7 +255,7 @@ final class MessageLogEntry
     }
 
     /**
-     * @return \ProcessorProxy\Model\MessageStatus
+     * @return MessageStatus
      */
     public function status()
     {

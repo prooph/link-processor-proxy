@@ -11,14 +11,12 @@
 
 namespace Prooph\Link\ProcessorProxy\ProcessingPlugin;
 
-use Doctrine\DBAL\Connection;
+use Prooph\Common\Event\ActionEvent;
 use Prooph\Processing\Environment\Environment;
 use Prooph\Processing\Environment\Plugin;
 use Prooph\Processing\Processor\ProcessId;
 use Prooph\Link\ProcessorProxy\Model\MessageLogger;
-use Prooph\Link\ProcessorProxy\Service\DbalMessageLogger;
 use Rhumsaa\Uuid\Uuid;
-use Zend\EventManager\Event;
 
 /**
  * Class StartMessageProcessIdLogger
@@ -65,13 +63,13 @@ final class StartMessageProcessIdLogger implements Plugin
      */
     public function registerOn(Environment $workflowEnv)
     {
-        $workflowEnv->getWorkflowProcessor()->events()->attach("process_was_started_by_message", [$this, "onProcessWasStartedByMessage"]);
+        $workflowEnv->getWorkflowProcessor()->events()->attachListener("process_was_started_by_message", [$this, "onProcessWasStartedByMessage"]);
     }
 
     /**
-     * @param Event $event
+     * @param ActionEvent $event
      */
-    public function onProcessWasStartedByMessage(Event $event)
+    public function onProcessWasStartedByMessage(ActionEvent $event)
     {
         $this->messageLogger->logProcessStartedByMessage(
             ProcessId::fromString($event->getParam('process_id')),

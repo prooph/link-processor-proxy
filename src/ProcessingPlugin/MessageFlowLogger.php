@@ -11,6 +11,10 @@
 
 namespace Prooph\Link\ProcessorProxy\ProcessingPlugin;
 
+use Prooph\Common\Event\ActionEventDispatcher;
+use Prooph\Common\Event\ActionEventListenerAggregate;
+use Prooph\Common\Event\DetachAggregateHandlers;
+use Prooph\Common\Messaging\RemoteMessage;
 use Prooph\Processing\Environment\Environment;
 use Prooph\Processing\Environment\Plugin;
 use Prooph\Processing\Message\ProcessingMessage;
@@ -20,11 +24,9 @@ use Prooph\Processing\Processor\Command\StartSubProcess;
 use Prooph\Processing\Processor\Event\SubProcessFinished;
 use Prooph\Link\ProcessorProxy\Model\MessageLogEntry;
 use Prooph\Link\ProcessorProxy\Model\MessageLogger;
-use Prooph\ServiceBus\Message\MessageInterface;
 use Prooph\ServiceBus\Process\CommandDispatch;
 use Prooph\ServiceBus\Process\EventDispatch;
-use Zend\EventManager\AbstractListenerAggregate;
-use Zend\EventManager\EventManagerInterface;
+use Prooph\ServiceBus\Process\MessageDispatch;
 
 /**
  * Class MessageFlowLogger
@@ -34,8 +36,10 @@ use Zend\EventManager\EventManagerInterface;
  * @package ProcessorProxy\ProcessingPlugin\Factory
  * @author Alexander Miertsch <kontakt@codeliner.ws>
  */
-final class MessageFlowLogger extends AbstractListenerAggregate implements Plugin
+final class MessageFlowLogger implements ActionEventListenerAggregate, Plugin
 {
+    use DetachAggregateHandlers;
+
     const PLUGIN_NAME ="prooph.link.processor_proxy.message_flow_logger";
     /**
      * @var MessageLogger
@@ -72,27 +76,31 @@ final class MessageFlowLogger extends AbstractListenerAggregate implements Plugi
     }
 
     /**
-     * Attach one or more listeners
-     *
-     * Implementors may add an optional $priority argument; the EventManager
-     * implementation will pass this to the aggregate.
-     *
-     * @param EventManagerInterface $events
+     * @param ActionEventDispatcher $events
      *
      * @return void
      */
-    public function attach(EventManagerInterface $events)
+    public function attach(ActionEventDispatcher $events)
     {
-        $identifiers = $events->getIdentifiers();
+        $this->trackHandler($events->attachListener(MessageDispatch::INITIALIZE, [$this, 'onInitializeMessageDispatch']));
+        $this->trackHandler($events->attachListener(MessageDispatch::FINALIZE, [$this, 'onFinalizeMessageDispatch']));
+    }
 
-        if (in_array('command_bus', $identifiers)) {
-            $this->listeners[] = $events->attach(CommandDispatch::INITIALIZE, array($this, 'onInitializeCommandDispatch'));
-            $this->listeners[] = $events->attach(CommandDispatch::FINALIZE, array($this, 'onFinalizeCommandDispatch'));
+    public function onInitializeMessageDispatch(MessageDispatch $messageDispatch)
+    {
+        if ($messageDispatch instanceof CommandDispatch) {
+            $this->onInitializeCommandDispatch($messageDispatch);
+        } else {
+            $this->onInitializeEventDispatch($messageDispatch);
         }
+    }
 
-        if (in_array('event_bus', $identifiers)) {
-            $this->listeners[] = $events->attach(EventDispatch::INITIALIZE, array($this, 'onInitializeEventDispatch'));
-            $this->listeners[] = $events->attach(EventDispatch::FINALIZE, array($this, 'onFinalizeEventDispatch'));
+    public function onFinalizeMessageDispatch(MessageDispatch $messageDispatch)
+    {
+        if ($messageDispatch instanceof CommandDispatch) {
+            $this->onFinalizeCommandDispatch($messageDispatch);
+        } else {
+            $this->onFinalizeEventDispatch($messageDispatch);
         }
     }
 
@@ -151,7 +159,7 @@ final class MessageFlowLogger extends AbstractListenerAggregate implements Plugi
     {
         $messageId = null;
 
-        if ($message instanceof MessageInterface) $messageId = $message->header()->uuid();
+        if ($message instanceof RemoteMessage) $messageId = $message->header()->uuid();
         elseif ($message instanceof ProcessingMessage) $messageId = $message->uuid();
 
         if (! $messageId) return;
@@ -203,7 +211,7 @@ final class MessageFlowLogger extends AbstractListenerAggregate implements Plugi
     {
         $messageId = null;
 
-        if ($message instanceof MessageInterface) $messageId = $message->header()->uuid();
+        if ($message instanceof RemoteMessage) $messageId = $message->header()->uuid();
         elseif ($message instanceof WorkflowMessage) $messageId = $message->uuid();
         elseif ($message instanceof LogMessage) $messageId = $message->uuid();
         elseif ($message instanceof StartSubProcess) $messageId = $message->uuid();
