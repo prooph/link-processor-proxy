@@ -26,7 +26,7 @@ return [
                                                 'id' => '.+',
                                             ),
                                             'defaults' => [
-                                                'controller' => 'Prooph\Link\ProcessorProxy\Api\Message',
+                                                'controller' => \Prooph\Link\ProcessorProxy\Api\Message::class,
                                             ]
                                         ]
                                     ],
@@ -38,7 +38,7 @@ return [
                                                 'id' => '.+',
                                             ),
                                             'defaults' => [
-                                                'controller' => 'Prooph\Link\ProcessorProxy\Api\CollectDataTrigger',
+                                                'controller' => \Prooph\Link\ProcessorProxy\Api\CollectDataTrigger::class,
                                             ]
                                         ]
                                     ]
@@ -66,22 +66,22 @@ return [
     ],
     'controllers' => array(
         'factories' => [
-            'Prooph\Link\ProcessorProxy\Api\CollectDataTrigger' => 'Prooph\Link\ProcessorProxy\Api\Factory\CollectDataTriggerFactory',
-            'Prooph\Link\ProcessorProxy\Api\Message' => 'Prooph\Link\ProcessorProxy\Api\Factory\MessageResourceFactory',
+            \Prooph\Link\ProcessorProxy\Api\CollectDataTrigger::class => \Prooph\Link\ProcessorProxy\Api\Factory\CollectDataTriggerFactory::class,
+            \Prooph\Link\ProcessorProxy\Api\Message::class => \Prooph\Link\ProcessorProxy\Api\Factory\MessageResourceFactory::class,
         ]
     ),
     'zf-content-negotiation' => [
         'controllers' => [
-            'Prooph\Link\ProcessorProxy\Api\Message'            => 'Json',
-            'Prooph\Link\ProcessorProxy\Api\CollectDataTrigger' => 'Json',
+            \Prooph\Link\ProcessorProxy\Api\Message::class            => 'Json',
+            \Prooph\Link\ProcessorProxy\Api\CollectDataTrigger::class => 'Json',
         ],
         'accept_whitelist' => [
-            'Prooph\Link\ProcessorProxy\Api\Message'            => ['application/json'],
-            'Prooph\Link\ProcessorProxy\Api\CollectDataTrigger' => ['application/json'],
+            \Prooph\Link\ProcessorProxy\Api\Message::class            => ['application/json'],
+            \Prooph\Link\ProcessorProxy\Api\CollectDataTrigger::class => ['application/json'],
         ],
         'content_type_whitelist' => [
-            'Prooph\Link\ProcessorProxy\Api\Message'            => ['application/json'],
-            'Prooph\Link\ProcessorProxy\Api\CollectDataTrigger' => ['application/json'],
+            \Prooph\Link\ProcessorProxy\Api\Message::class            => ['application/json'],
+            \Prooph\Link\ProcessorProxy\Api\CollectDataTrigger::class => ['application/json'],
         ],
     ],
 ];
